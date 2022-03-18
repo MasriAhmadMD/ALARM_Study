@@ -1,0 +1,20 @@
+channels:
+  - https://conda.anaconda.org/conda-forge
+dependencies:
+  - python=3.7
+  - numpy
+  - pandas
+  - py-lz4framed
+  - pytables
+  - pytest
+  - pytest-cov
+  - scipy
+  - ujson
+  - xlrd
+  - pip:
+    - gensim
+    - seaborn
+    - sklearn
+    - sphinx-autodoc-annotation
+    - git+https://github.com/ssolari/simpleh5.git@v0.1.0
+
