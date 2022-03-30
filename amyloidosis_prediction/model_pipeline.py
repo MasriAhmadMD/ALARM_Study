@@ -221,7 +221,8 @@ def preprocess_data(run_data_list, limit_rows=0):
 def run_pipeline(
         run_data_list = (DIAGNOSES_DEF, CLINICAL_NOTES_DEF, LAB_RESULTS_DEF, RESULT_NOTES_DEF),
         num_lsi_topics=(100,),
-        check_odds_ratios=(3.5,)
+        check_odds_ratios=(3.5,),
+        limit_rows: int=0,
 ):
     """
     Run the full pipeline against a set of different clinical datasets across parameters.
@@ -229,11 +230,12 @@ def run_pipeline(
     :param run_data_list: list of clinical data sets to perform modelling against
     :param num_lsi_topics:  list of number of lsi topics.  Each will perform full LSI generation with that number.
     :param check_odds_ratios:  list of different odds ratios to generate models against.
+    :param limit_rows: sets the number of rows of initial data to setup to be processed.   if set to 0 will run all data.  Can be used to perform quick experiments.
     :return:
     """
 
     # perform preprocessing on csv data to convert and split into HDF5 files
-    preprocess_data(run_data_list)
+    preprocess_data(run_data_list, limit_rows=limit_rows)
 
     # determine dates of clinical notes to restrict/clean up based on date and counts of clinical notes
     patients_clinical_note_dates()
@@ -308,4 +310,4 @@ def run_pipeline(
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    run_pipeline()
+    run_pipeline(limit_rows=1000)  # set limit rows to 0 to run all data
