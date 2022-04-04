@@ -362,6 +362,7 @@ LAB_RESULTS_DEF = {
 RESULT_NOTES_COLS = {
     'STUDY_PAT_ID': 's32',
     'STUDY_ENC_ID': 's32',
+    'STUDY_ORDER_ID': 's32',
     'SPECIMEN_DATE': 's16',
     'PROC_NAME': 's100',
     'COMMENT_TEXT': 's100000',
