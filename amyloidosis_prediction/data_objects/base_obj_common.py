@@ -19,8 +19,7 @@ from typing import Any, Optional, Tuple, Union
 from simpleh5 import H5ColStore
 from simpleh5.utilities.serialize_utilities import obj_dtype
 
-from amyloidosis_prediction.data_objects.file_config import DIR_C_RAW, DIR_C_SPLIT, NAME, ID_COL, LOCATION, DIR_S_SPLIT, \
-    TEXT_COL, SORT_COL
+from amyloidosis_prediction.data_objects.file_config import NAME, ID_COL, TEXT_COL, SORT_COL
 from amyloidosis_prediction.utility.timing import log_time
 
 PAT_INDEX = 'patient_index'
@@ -31,6 +30,12 @@ PAT_FLAGS_TBL = 'patient_flags_table'
 BOW = 'bow'
 GROUP = 'group'
 VECS = 'vecs'
+
+try:
+    DIR_RAW = os.environ['AMYLOID_RAW_DIR']
+    DIR_SPLIT = os.environ['AMYLOID_SPLIT_DIR']
+except:
+    raise Exception('Need to specify enviornmental variables: AMYLOID_RAW_DIR and AMYLOID_SPLIT_DIR')
 
 
 # generate cleaning regular expressions
@@ -47,7 +52,7 @@ def simple_clean(text):
 def get_odds_dir(odds_ratio, name: str=''):
 
     oddsname = str(odds_ratio).replace('.', '_')
-    odds_directory = os.path.join(DIR_C_RAW, f'odds_{oddsname}{name}')
+    odds_directory = os.path.join(DIR_RAW, f'odds_{oddsname}{name}')
     return odds_directory
 
 
@@ -63,6 +68,9 @@ class BaseObjCommon(object):
 
     def __init__(self, file_def: dict, name: str='', num_topics: int=200, odds_ratio: Union[int, float]=50,
                  restrict_patients: set=None, amyloid_pats: set=None, **kwargs):
+
+        dir_split = DIR_SPLIT
+        dir_raw = DIR_RAW
 
         self._name = name
         self._file_def = file_def
@@ -88,39 +96,39 @@ class BaseObjCommon(object):
 
         self._flag_file = os.path.join(self._data_dir, 'amyloid_diagnoses_flags.csv')
 
-        self._path_splitdir = os.path.join(DIR_C_SPLIT, f'{self.table_name}_split_h5')
-        self._path_cleandir_c = os.path.join(DIR_C_SPLIT, f'{self.table_name}_clean_h5')
+        self._path_splitdir = os.path.join(dir_split, f'{self.table_name}_split_h5')
+        self._path_cleandir_c = os.path.join(dir_split, f'{self.table_name}_clean_h5')
 
         self._odds_directory = get_odds_dir(odds_ratio, name=name)
-        if os.path.exists(DIR_C_RAW) and not os.path.exists(self._odds_directory):
+        if os.path.exists(dir_raw) and not os.path.exists(self._odds_directory):
             os.mkdir(self._odds_directory)
 
         self._model_dir = get_model_dir(odds_ratio, num_topics, name=name)
-        if os.path.exists(DIR_C_RAW) and not os.path.exists(self._model_dir):
+        if os.path.exists(dir_raw) and not os.path.exists(self._model_dir):
             os.mkdir(self._model_dir)
 
-        self._counts_directory = os.path.join(DIR_C_RAW, f'word_counts{self._name}')
-        if os.path.exists(DIR_C_RAW) and not os.path.exists(self._counts_directory):
+        self._counts_directory = os.path.join(dir_raw, f'word_counts{self._name}')
+        if os.path.exists(dir_raw) and not os.path.exists(self._counts_directory):
             os.mkdir(self._counts_directory)
 
         self._path_cnts = os.path.join(self._counts_directory, f'{self.table_name}_token_counts{self._name}')
-        if os.path.exists(DIR_C_RAW) and not os.path.exists(self._path_cnts):
+        if os.path.exists(dir_raw) and not os.path.exists(self._path_cnts):
             os.mkdir(self._path_cnts)
 
         self._token_dict = os.path.join(self._odds_directory, f'{self.table_name}_token_dict{self._name}.txt')
 
         self._bow_path = os.path.join(self._odds_directory, BOW)
-        if os.path.exists(DIR_C_RAW) and not os.path.exists(self._bow_path):
+        if os.path.exists(dir_raw) and not os.path.exists(self._bow_path):
             os.mkdir(self._bow_path)
 
         self._lsi_vecs = None
         self._lsivecs_path = os.path.join(self._model_dir, f'lsi_vecs')
-        if os.path.exists(DIR_C_RAW) and not os.path.exists(self._lsivecs_path):
+        if os.path.exists(dir_raw) and not os.path.exists(self._lsivecs_path):
             os.mkdir(self._lsivecs_path)
 
         self._lda_vecs = None
         self._ldavecs_path = os.path.join(self._model_dir, f'lda_vecs')
-        if os.path.exists(DIR_C_RAW) and not os.path.exists(self._ldavecs_path):
+        if os.path.exists(dir_raw) and not os.path.exists(self._ldavecs_path):
             os.mkdir(self._ldavecs_path)
 
         self.bowfile = os.path.join(self._bow_path, f'{self.table_name}_bow.h5')
@@ -130,17 +138,19 @@ class BaseObjCommon(object):
         self.ldavecsfile = os.path.join(self._ldavecs_path, f'{self.table_name}_lda_vecs.h5')
         self.h5ldavecs = H5ColStore(self.ldavecsfile)
 
+        '''
         # Potentially OLD:
-        self._path_split = os.path.join(DIR_C_RAW, f'{self.table_name}_split.h5')
+        self._path_split = os.path.join(dir_raw, f'{self.table_name}_split.h5')
         self.h5split = H5ColStore(self._path_split)
-        self._path_raw = os.path.join(self._file_def.get(LOCATION, DIR_C_RAW), f'{self.table_name}.h5')
-        self._path_feat = os.path.join(DIR_C_RAW, f'{self.table_name}_feature.h5')
-        self._path_splitnew = os.path.join(DIR_C_SPLIT, f'{self.table_name}_split.h5')
+        self._path_raw = os.path.join(self._file_def.get(LOCATION, dir_raw), f'{self.table_name}.h5')
+        self._path_feat = os.path.join(dir_raw, f'{self.table_name}_feature.h5')
+        self._path_splitnew = os.path.join(dir_split, f'{self.table_name}_split.h5')
 
         self.h5raw = H5ColStore(self._path_raw)
         self.h5feat = H5ColStore(self._path_feat)
         self.h5splitnew = H5ColStore(self._path_splitnew)
         # potentially old
+        '''
 
         # cache variables
         self._pat_index = None
@@ -1095,14 +1105,3 @@ class BaseObjCommon(object):
         if not self._pat_index:
             self._pat_index = self._get_key_value(PAT_INDEX)
         return self._pat_index
-
-
-
-if __name__ == '__main__':
-
-    logging.basicConfig(level=logging.INFO)
-    from ohsu_amyloidosis.pipelines.file_config import CLINICAL_NOTES_DEF
-    bobj = BaseObjCommon(file_def=CLINICAL_NOTES_DEF)
-    tmp_patid = '2E7263668632BA049CB60BCAD31D721F'
-
-    print(f'Patient group: {bobj.pat_group_string(tmp_patid)} for patient_id: {tmp_patid}')

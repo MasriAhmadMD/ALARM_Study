@@ -1,7 +1,16 @@
 """
 Store file configurations for data organization
+
+This file will have to be configured for any new dataset
 """
 import os
+
+# The location of original files and split files output directory must be specified
+try:
+    DIR_RAW = os.environ['AMYLOID_RAW_DIR']
+    DIR_SPLIT = os.environ['AMYLOID_SPLIT_DIR']
+except:
+    raise Exception('Need to specify enviornmental variables: AMYLOID_RAW_DIR and AMYLOID_SPLIT_DIR')
 
 NAME = 'name'
 DELIM = 'delimiter'
@@ -14,15 +23,6 @@ LOCATION = 'location'
 TEXT_COL = 'text_col'
 SORT_COL = 'sort_col'
 
-# stable paths, MODIFY if reused somewhere else
-DIR_LOCAL_FOO_RAW = 'C:/Users/elmanm/Desktop/foo/raw/'
-DIR_S_DROP = 'S:/NLP/Data/Masri_Elman_IRB21240_File_Drop/'
-DIR_S_RAW = 'S:/NLP/Data/raw/'
-DIR_S_PROC = 'S:/NLP/Data/processed/'
-DIR_BOX_MASRI = 'C:/Users/elmanm/Box/Masri_Elman_IRB21240_ATTR_Machine_Learning_Protocol_SPARC-12034/'
-DIR_C_RAW = 'C:/Users/elmanm/Desktop/Masri_NLP_Data/Raw/'
-DIR_C_SPLIT = os.path.join(DIR_C_RAW, 'Split')
-DIR_S_SPLIT = os.path.join(DIR_S_RAW, 'Split')
 
 # Define data columns of each dataset, should be specific to dataset and determines the simplh5 HDF5 storage.
 NOTE_FILE_COLS = {
@@ -49,7 +49,7 @@ CLINICAL_NOTES_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: NOTE_FILE_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_RAW,
+    LOCATION: DIR_RAW,
     TEXT_COL: 'RPT_TEXT',
     SORT_COL: 'NOTE_DT',
 
@@ -89,7 +89,7 @@ DIAGNOSES_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: DIAGNOSES_FILE_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_C_RAW,
+    LOCATION: DIR_RAW,
     TEXT_COL: ['DX_NAME', 'ICD10_NAME', 'ICD9_NAME'],
     SORT_COL: 'DIAGNOSIS_START_DATE',
 }
@@ -155,7 +155,7 @@ HOSPITAL_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: HOSPITAL_ENCOUNTERS_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_DROP,
+    LOCATION: DIR_RAW,
 }
 
 #S:/NLP/Data/Masri_Elman_IRB21240_File_Drop\Masri_Elman_IRB21240_Administered_Medications.csv
@@ -183,7 +183,7 @@ ADMIN_MEDICATIONS_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: ADMIN_MEDICATIONS_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_DROP,
+    LOCATION: DIR_RAW,
 }
 
 #S:/NLP/Data/Masri_Elman_IRB21240_File_Drop\Masri_Elman_IRB21240_Ambulatory_Encounters.csv
@@ -209,7 +209,7 @@ AMBULATORY_ENCOUNTERS_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: AMBULATORY_ENCOUNTERS_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_DROP,
+    LOCATION: DIR_RAW,
 }
 
 
@@ -234,7 +234,7 @@ CURRENT_MEDICATIONS_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: CURRENT_MEDICATIONS_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_DROP,
+    LOCATION: DIR_RAW,
     TEXT_COL: ['GENERIC_NAME_1', 'GENERIC_NAME_2', 'PHARM_CLASS_NAME', 'PHARM_SUBCLASS_NAME'],
     SORT_COL: 'LAST_CURRENT_MEDS_DATE',
 }
@@ -271,7 +271,7 @@ ORDERED_MEDICATIONS_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: ORDERED_MEDICATIONS_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_DROP,
+    LOCATION: DIR_RAW,
     TEXT_COL: ['GENERIC_NAME_1', 'GENERIC_NAME_2', 'PHARM_CLASS_NAME', 'PHARM_SUBCLASS_NAME', 'THERAPY_CLASS_NAME'],
     SORT_COL: 'ENCOUNTER_DATE'
 }
@@ -301,7 +301,7 @@ DEMOGRAPHICS_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: DEMOGRAPHICS_COLS,
     EXPECTED_ROWS: 100000,
-    LOCATION: DIR_C_RAW,
+    LOCATION: DIR_RAW,
 }
 
 ORDER_NARRATIVE_COLS = {
@@ -321,7 +321,7 @@ ORDER_NARRATIVE_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: ORDER_NARRATIVE_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_C_RAW,
+    LOCATION: DIR_RAW,
     TEXT_COL: 'NARRATIVE_TEXT',
     SORT_COL: 'ORDER_DATE',
 }
@@ -353,7 +353,7 @@ LAB_RESULTS_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: LAB_RESULTS_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_RAW,
+    LOCATION: DIR_RAW,
     TEXT_COL: ['PROCEDURE_NAME', 'COMPONENT_NAME', 'RESULT_TEXT'],
     SORT_COL: 'ORDER_TIME',
 }
@@ -374,7 +374,7 @@ RESULT_NOTES_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: RESULT_NOTES_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_C_RAW,
+    LOCATION: DIR_RAW,
     TEXT_COL: ['COMMENT_TEXT', 'PROC_NAME'],
     SORT_COL: 'SPECIMEN_DATE',
 }
@@ -405,7 +405,7 @@ PATHOLOGY_DEF = {
     ID_COL: 'STUDY_PAT_ID',
     COL_DEF: PATHOLOGY_COLS,
     EXPECTED_ROWS: 30000000,
-    LOCATION: DIR_S_RAW,
+    LOCATION: DIR_RAW,
     TEXT_COL: ['REPORT_BODY_LINE_OF_TEXT'],
     SORT_COL: 'RESULT_COMPLETED_DT',
 }

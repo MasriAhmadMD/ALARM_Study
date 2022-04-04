@@ -5,12 +5,13 @@ import re
 
 
 from amyloidosis_prediction.data_objects.base_obj_common import BaseObjCommon, get_model_dir
-from amyloidosis_prediction.data_objects.file_config import DIAGNOSES_DEF, DEMOGRAPHICS_DEF, CLINICAL_NOTES_DEF, DIR_C_RAW
+from amyloidosis_prediction.data_objects.file_config import DIAGNOSES_DEF, DEMOGRAPHICS_DEF, CLINICAL_NOTES_DEF, DIR_RAW
+
 
 
 def patients_clinical_note_dates():
 
-    outdir = os.path.join(DIR_C_RAW, 'analysis_output')
+    outdir = os.path.join(DIR_RAW, 'analysis_output')
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 

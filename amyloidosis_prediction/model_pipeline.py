@@ -12,7 +12,7 @@ import re
 from simpleh5 import H5ColStore
 
 from amyloidosis_prediction.data_objects.base_obj_common import BaseObjCommon, get_model_dir
-from amyloidosis_prediction.data_objects.file_config import NAME, DIR_S_DROP, DIR_C_RAW, \
+from amyloidosis_prediction.data_objects.file_config import NAME, DIR_RAW, \
     CLINICAL_NOTES_DEF, DIAGNOSES_DEF, LAB_RESULTS_DEF, RESULT_NOTES_DEF, \
     HOSPITAL_DEF, ADMIN_MEDICATIONS_DEF, AMBULATORY_ENCOUNTERS_DEF, CURRENT_MEDICATIONS_DEF, ORDERED_MEDICATIONS_DEF, \
     PATHOLOGY_DEF, ORDER_NARRATIVE_DEF
@@ -212,7 +212,7 @@ def preprocess_data(run_data_list, limit_rows=0):
 
     for j, file_def in enumerate(run_data_list):
 
-        convert_csv_to_hdf5(DIR_S_DROP, DIR_C_RAW, RESULT_NOTES_DEF, limit_rows=limit_rows)
+        convert_csv_to_hdf5(DIR_RAW, DIR_RAW, RESULT_NOTES_DEF, limit_rows=limit_rows)
 
         bobj = BaseObjCommon(file_def)
         bobj.create_clean_text_split()
