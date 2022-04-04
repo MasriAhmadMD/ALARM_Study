@@ -187,18 +187,17 @@ def train_models(run_list, odds_ratio, num_topics, name: str='', restrict_patien
 def convert_csv_to_hdf5(input_directory, output_directory, file_definition, limit_rows=0):
 
     # helper function for standard conversion
+    logging.info(f"Working on data: {file_definition[NAME]}")
     h5file = os.path.join(output_directory, file_definition[NAME] + '.h5')
     if not os.path.exists(h5file):
         # convert
         csv_to_hdf5(input_directory, output_directory, file_definition, limit_rows=limit_rows)
         h5 = H5ColStore(h5file)
+        logging.info("H5 File created...")
         print(h5)
         #h5.repack()
     else:
         logging.warning(f'H5 file exists, NOT rewriting ... {h5file}')
-    # check
-    h5 = H5ColStore(h5file)
-    print(h5)
 
 
 def preprocess_data(run_data_list, limit_rows=0):
@@ -212,8 +211,7 @@ def preprocess_data(run_data_list, limit_rows=0):
 
     for j, file_def in enumerate(run_data_list):
 
-        convert_csv_to_hdf5(DIR_RAW, DIR_SPLIT, RESULT_NOTES_DEF, limit_rows=limit_rows)
-
+        convert_csv_to_hdf5(DIR_RAW, DIR_SPLIT, file_def, limit_rows=limit_rows)
         bobj = BaseObjCommon(file_def)
         bobj.create_clean_text_split()
 
