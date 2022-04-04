@@ -10,7 +10,9 @@ try:
     DIR_RAW = os.environ['AMYLOID_RAW_DIR']
     DIR_SPLIT = os.environ['AMYLOID_SPLIT_DIR']
 except:
-    raise Exception('Need to specify enviornmental variables: AMYLOID_RAW_DIR and AMYLOID_SPLIT_DIR')
+    #raise Exception('Need to specify enviornmental variables: AMYLOID_RAW_DIR and AMYLOID_SPLIT_DIR')
+    DIR_RAW = r'S:\NLP\Data\Masri_Elman_IRB21240_File_Drop'
+    DIR_SPLIT = r'E:\Masri Research\NLPtest'
 
 NAME = 'name'
 DELIM = 'delimiter'
