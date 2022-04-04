@@ -46,3 +46,16 @@ python setup.py install
 
 If modifications need to be made to the file_config.py to alter data formats and re-run then the above setup.py install command should be run again. 
 
+## Running 
+
+Two envrionmental variables must be set
+
+```python
+AMYLOID_RAW_DIR
+```
+
+and
+
+```python
+AMYLOID_SPLIT_DIR
+```
