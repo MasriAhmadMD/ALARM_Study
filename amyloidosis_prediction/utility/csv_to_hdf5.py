@@ -207,7 +207,7 @@ def csv_to_hdf5(in_directory: str, out_directory: str, file_definition: dict, li
             try:
                 buffer[k].append(row[k])
             except KeyError:
-                raise Exception(f"No key {k} in row.  Row has keys: {row.keys()}")
+                raise Exception(f'No key {k} in row.\nRow     has keys: {", ".join(row.keys())}\nFileDef has keys: {", ".join([k for k in col_def])}')
             except:
                 raise
 
