@@ -52,7 +52,7 @@ def simple_clean(text):
 def get_odds_dir(odds_ratio, name: str=''):
 
     oddsname = str(odds_ratio).replace('.', '_')
-    odds_directory = os.path.join(DIR_RAW, f'odds_{oddsname}{name}')
+    odds_directory = os.path.join(DIR_SPLIT, f'odds_{oddsname}{name}')
     return odds_directory
 
 
