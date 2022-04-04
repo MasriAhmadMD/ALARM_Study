@@ -5,14 +5,15 @@ import re
 
 
 from amyloidosis_prediction.data_objects.base_obj_common import BaseObjCommon, get_model_dir
-from amyloidosis_prediction.data_objects.file_config import DIAGNOSES_DEF, DEMOGRAPHICS_DEF, CLINICAL_NOTES_DEF, DIR_RAW
+from amyloidosis_prediction.data_objects.file_config import DIAGNOSES_DEF, DEMOGRAPHICS_DEF, CLINICAL_NOTES_DEF, DIR_SPLIT
 
 
 
 def patients_clinical_note_dates():
 
-    outdir = os.path.join(DIR_RAW, 'analysis_output')
+    outdir = os.path.join(DIR_SPLIT, 'analysis_output')
     if not os.path.exists(outdir):
+        logging.info(f'Making directory: {outdir}')
         os.mkdir(outdir)
 
     bobj = BaseObjCommon(CLINICAL_NOTES_DEF)
@@ -30,7 +31,9 @@ def patients_clinical_note_dates():
         pat_info[pat].add(dt)
 
 
-    with open(os.path.join(outdir, 'clinical_note_dates.txt'), 'w') as f:
+    outfile = os.path.join(outdir, 'clinical_note_dates.txt')
+    logging.info(f'Writing: {outfile}')
+    with open(outfile, 'w') as f:
         for pat, dts in pat_info.items():
             dates = ','.join(sorted(dts))
             f.write(f'{pat},{dates}\n')

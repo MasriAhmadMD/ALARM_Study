@@ -2,16 +2,21 @@
 Script to characterize clinical note dates on all patients
 """
 
+import logging
 import os
 import time
 from datetime import datetime
+
+from amyloidosis_prediction.data_objects.file_config import DIR_SPLIT
 
 
 CURDIR = os.path.dirname(os.path.abspath(__file__))
 SORTED_FILE = 'sorted_clinical_note_dates.txt'
 
 def reorganize_dates():
-    with open(os.path.join(CURDIR, 'clinical_note_dates.txt'), 'r') as f:
+
+    outdir = os.path.join(DIR_SPLIT, 'analysis_output')
+    with open(os.path.join(outdir, 'clinical_note_dates.txt'), 'r') as f:
         data = f.read().strip().split('\n')
 
     sttime = time.time()
@@ -26,7 +31,9 @@ def reorganize_dates():
             dates.append(newdt)
         pat_data[pat] = dates
 
-    with open(os.path.join(CURDIR, SORTED_FILE), 'w') as f:
+    outfile = os.path.join(DIR_SPLIT, 'analysis_output', SORTED_FILE)
+    logging.info(f"Writing: {outfile}")
+    with open(outfile, 'w') as f:
         for pat, dates in sorted(pat_data.items()):
             f.write(f'{pat},{",".join(sorted(dates))}\n')
 
@@ -36,10 +43,12 @@ def reorganize_dates():
 def characterize_and_return_dates(print_stats=True):
 
     sttime = time.time()
-    if not os.path.exists(SORTED_FILE):
+    outfile = os.path.join(DIR_SPLIT, 'analysis_output', SORTED_FILE)
+    if not os.path.exists(outfile):
         reorganize_dates()
 
-    with open(os.path.join(CURDIR, SORTED_FILE), 'r') as f:
+    logging.info(f"Reading: {outfile}")
+    with open(outfile, 'r') as f:
         data = f.read().strip().split('\n')
 
     TOTAL = 'total'
