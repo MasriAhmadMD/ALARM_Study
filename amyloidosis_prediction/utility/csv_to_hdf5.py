@@ -204,7 +204,12 @@ def csv_to_hdf5(in_directory: str, out_directory: str, file_definition: dict, li
     for cnt, row in enumerate(iterate_csv_rows(in_directory, file_definition, limit_rows=limit_rows)):
 
         for k in row:
-            buffer[k].append(row[k])
+            try:
+                buffer[k].append(row[k])
+            except KeyError:
+                raise Exception(f"No key {k}")
+            except:
+                raise
 
         if buffer[id_col] and len(buffer[id_col]) % buffer_len == 0:
             h5file.append_ctable(table_name, col_data=buffer)
