@@ -19,7 +19,7 @@ from typing import Any, Optional, Tuple, Union
 from simpleh5 import H5ColStore
 from simpleh5.utilities.serialize_utilities import obj_dtype
 
-from amyloidosis_prediction.data_objects.file_config import NAME, ID_COL, TEXT_COL, SORT_COL
+from amyloidosis_prediction.data_objects.file_config import NAME, ID_COL, TEXT_COL, SORT_COL, DIR_SPLIT, DIR_RAW
 from amyloidosis_prediction.utility.timing import log_time
 
 PAT_INDEX = 'patient_index'
@@ -30,12 +30,6 @@ PAT_FLAGS_TBL = 'patient_flags_table'
 BOW = 'bow'
 GROUP = 'group'
 VECS = 'vecs'
-
-try:
-    DIR_RAW = os.environ['AMYLOID_RAW_DIR']
-    DIR_SPLIT = os.environ['AMYLOID_SPLIT_DIR']
-except:
-    raise Exception('Need to specify enviornmental variables: AMYLOID_RAW_DIR and AMYLOID_SPLIT_DIR')
 
 
 # generate cleaning regular expressions
