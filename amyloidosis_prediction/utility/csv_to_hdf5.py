@@ -199,7 +199,7 @@ def csv_to_hdf5(in_directory: str, out_directory: str, file_definition: dict, li
     # loop through all files and re-write rows
     logging.info(f'Starting read and writing ...')
     buffer = {k: [] for k in col_def}
-    logging.info(f'Columns: {",".join([k for k in col_def])}')
+    logging.info(f'Column definitions: {",".join([k for k in col_def])}')
     id_col = list(buffer.keys())[0]
     for cnt, row in enumerate(iterate_csv_rows(in_directory, file_definition, limit_rows=limit_rows)):
 
@@ -207,7 +207,7 @@ def csv_to_hdf5(in_directory: str, out_directory: str, file_definition: dict, li
             try:
                 buffer[k].append(row[k])
             except KeyError:
-                raise Exception(f"Row has keys: {row.keys()}")
+                raise Exception(f"No key {k} in row.  Row has keys: {row.keys()}")
             except:
                 raise
 
