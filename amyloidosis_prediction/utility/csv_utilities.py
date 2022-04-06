@@ -9,20 +9,10 @@ import glob
 import os
 import re
 
-from simpleh5 import H5ColStore
-
 # the text fields may be raeher large so need to increase field limit size
 from amyloidosis_prediction.data_objects.file_config import NAME, ENCODING, QUOTECHAR, DELIM, ID_COL, COL_DEF, EXPECTED_ROWS
 
 csv.field_size_limit(2147483647)
-
-
-def read_csv_lines(filename: str, encoding='utf-8', delimiter='|', quotechar='"') -> list:
-    rows = []
-    with open(filename, 'r', encoding=encoding, newline='') as csvfile:
-        reader = csv.reader(csvfile, quotechar=quotechar, delimiter=delimiter)
-        rows.extend([row for row in reader])
-    return rows
 
 
 def read_all_csv_lines(filename: str, encoding='utf-8', delimiter='|', quotechar='"') -> list:
@@ -107,64 +97,3 @@ def iterate_csv_rows(in_directory: str, file_definition: dict, limit_rows=10000,
                 # raise
                 num_errors += 1
                 logging.error(f'error #{num_errors} occurred on line {cnt}')
-
-
-def csv_to_hdf5(in_directory: str, out_directory: str, file_definition: dict, limit_rows=5000, buffer_len=5000):
-    '''
-    Perform conversion of original csv format to hdf5
-
-    :param in_directory:
-    :param out_directory:
-    :param file_definition:
-    :param limit_rows:
-    :param buffer_len:
-    :return:
-    '''
-
-    # loop through all different file types
-    outfile = os.path.join(out_directory, f'{file_definition[NAME]}.h5')
-    if os.path.exists(outfile):
-        logging.error(f'Existing: File exists: {outfile}')
-        return
-
-    logging.info(f'Writing files to directory: {out_directory}')
-    logging.info(f'Checking file_definition: {file_definition}')
-
-    h5file = H5ColStore(outfile)
-    table_name = file_definition[NAME]
-    col_def = file_definition[COL_DEF]
-    h5file.create_ctable(table_name, col_def, expectedrows=file_definition[EXPECTED_ROWS])
-
-    # loop through all files and re-write rows
-    logging.info(f'Starting read and writing ...')
-    buffer = {k: [] for k in col_def}
-    logging.info(f'Column definitions: {",".join([k for k in col_def])}')
-    id_col = list(buffer.keys())[0]
-    for cnt, row in enumerate(iterate_csv_rows(in_directory, file_definition, limit_rows=limit_rows)):
-
-        for k in row:
-            try:
-                buffer[k].append(row[k])
-            except KeyError:
-                raise Exception(f'No key {k} in row for {file_definition[NAME]}.\nRow     has keys: {", ".join(row.keys())}\nFileDef has keys: {", ".join([k for k in col_def])}')
-            except:
-                raise
-
-        if buffer[id_col] and len(buffer[id_col]) % buffer_len == 0:
-            h5file.append_ctable(table_name, col_data=buffer)
-            # clear buffer
-            buffer = {k: [] for k in col_def}
-
-    # ensure buffer is emptied
-    if buffer:
-        h5file.append_ctable(table_name, col_data=buffer)
-
-
-if __name__ == '__main__':
-    rows = [['junk1', 'junk2', 'junk3'], ['j1', 'j2', 'j3']]
-    f = './junk.csv'
-    write_csv_lines(f, rows)
-    d1 = read_csv_lines(f)
-    print(d1)
-    d2 = read_all_csv_lines(f)
-    print(d2)

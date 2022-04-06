@@ -86,6 +86,8 @@ def group_hf_neuro_amy_patients():
 
 
     for group in patients:
+        if not patients:
+            raise Exception(f'No patients were identified with ICD9 or ICD10 codes for: {group} ... this will cause issues later, so killing')
         #outfile = f'../patients/{group}_patients_icd9_icd10.txt'
         outfile = f'{group}_patients_icd9_icd10.txt'
         with open(outfile, 'w') as f:

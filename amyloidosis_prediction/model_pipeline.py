@@ -16,7 +16,6 @@ from amyloidosis_prediction.data_objects.file_config import NAME, DIR_RAW, DIR_S
     CLINICAL_NOTES_DEF, DIAGNOSES_DEF, LAB_RESULTS_DEF, RESULT_NOTES_DEF, \
     HOSPITAL_DEF, ADMIN_MEDICATIONS_DEF, AMBULATORY_ENCOUNTERS_DEF, CURRENT_MEDICATIONS_DEF, ORDERED_MEDICATIONS_DEF, \
     PATHOLOGY_DEF, ORDER_NARRATIVE_DEF
-from amyloidosis_prediction.utility.csv_to_hdf5 import csv_to_hdf5
 from amyloidosis_prediction.utility.csv_split import split_csvs, csv_split_to_hdf5_split
 
 from amyloidosis_prediction.models.run_models import train_check_models
@@ -185,6 +184,7 @@ def train_models(run_list, odds_ratio, num_topics, name: str='', restrict_patien
 
         false_positive_overlap(run_name, odds_ratio, num_topics, name=name)
 
+'''
 def convert_csv_to_hdf5(input_directory, output_directory, file_definition, limit_rows=0):
 
     # helper function for standard conversion
@@ -199,6 +199,7 @@ def convert_csv_to_hdf5(input_directory, output_directory, file_definition, limi
         #h5.repack()
     else:
         logging.warning(f'H5 file exists, NOT rewriting ... {h5file}')
+'''
 
 
 def preprocess_data(run_data_list, limit_rows=0):

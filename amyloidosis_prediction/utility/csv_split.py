@@ -7,9 +7,9 @@ from simpleh5 import H5ColStore
 
 from amyloidosis_prediction.data_objects.base_obj_common import BaseObjCommon
 from amyloidosis_prediction.data_objects.file_config import NAME, COL_DEF, ID_COL
-from amyloidosis_prediction.utility.csv_to_hdf5 import read_all_csv_lines
+from amyloidosis_prediction.utility.csv_utilities import read_all_csv_lines
 from amyloidosis_prediction.utility.timing import log_time
-from amyloidosis_prediction.utility.csv_to_hdf5 import iterate_csv_rows, write_csv_lines
+from amyloidosis_prediction.utility.csv_utilities import iterate_csv_rows, write_csv_lines
 
 def split_csvs(input_directory, output_directory, file_definition, limit_rows=0):
 
