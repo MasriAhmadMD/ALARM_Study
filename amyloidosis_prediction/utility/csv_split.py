@@ -11,6 +11,7 @@ from amyloidosis_prediction.utility.csv_utilities import read_all_csv_lines
 from amyloidosis_prediction.utility.timing import log_time
 from amyloidosis_prediction.utility.csv_utilities import iterate_csv_rows, write_csv_lines
 
+
 def split_csvs(input_directory, output_directory, file_definition, limit_rows=0):
 
     split_dir = os.path.join(output_directory, f'{file_definition[NAME]}_split_csv')
@@ -56,7 +57,6 @@ def csv_split_to_hdf5_split(in_directory: str, out_directory: str, file_definiti
         raise Exception(f'Existing: File exists: {outfile}')
 
     bobj = BaseObjCommon(file_definition)
-    h5file = H5ColStore(outfile)
     table_name = file_definition[NAME]
     col_def = file_definition[COL_DEF]
 
@@ -87,10 +87,6 @@ def csv_split_to_hdf5_split(in_directory: str, out_directory: str, file_definiti
         h5file = os.path.join(bobj._path_splitdir, f'{group}.h5')
         h5 = H5ColStore(h5file)
         h5.append_ctable(group, col_data, col_dtypes=file_definition[COL_DEF])
-
-        #new_dtypes = {k: f's{max(1, int(1.1*max_lens[j]))}' for j, k in enumerate(col_def)}
-        #h5file.create_ctable(group, new_dtypes, expectedrows=file_definition[EXPECTED_ROWS])
-        #h5file.append_ctable(group, col_data=col_data)
         log_time(cnt, sttime, len(all_files), pre=f'{table_name} {group}')
 
     return pat_ids

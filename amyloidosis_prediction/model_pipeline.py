@@ -206,7 +206,7 @@ def preprocess_data(run_data_list, limit_rows=0):
 
 
 def run_pipeline(
-        run_data_list = (DIAGNOSES_DEF, CLINICAL_NOTES_DEF, LAB_RESULTS_DEF, RESULT_NOTES_DEF),
+        run_data_list = (DIAGNOSES_DEF, RESULT_NOTES_DEF),  #CLINICAL_NOTES_DEF, LAB_RESULTS_DEF, RESULT_NOTES_DEF),
         num_lsi_topics=(100,),
         check_odds_ratios=(3.5,),
         limit_rows: int=0,
