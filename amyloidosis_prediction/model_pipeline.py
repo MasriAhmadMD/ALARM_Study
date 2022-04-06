@@ -17,6 +17,7 @@ from amyloidosis_prediction.data_objects.file_config import NAME, DIR_RAW, DIR_S
     HOSPITAL_DEF, ADMIN_MEDICATIONS_DEF, AMBULATORY_ENCOUNTERS_DEF, CURRENT_MEDICATIONS_DEF, ORDERED_MEDICATIONS_DEF, \
     PATHOLOGY_DEF, ORDER_NARRATIVE_DEF
 from amyloidosis_prediction.utility.csv_to_hdf5 import csv_to_hdf5
+from amyloidosis_prediction.utility.csv_split import split_csvs, csv_split_to_hdf5_split
 
 from amyloidosis_prediction.models.run_models import train_check_models
 from amyloidosis_prediction.patients.characterize_patient_dates import characterize_and_return_dates
@@ -211,7 +212,12 @@ def preprocess_data(run_data_list, limit_rows=0):
 
     for j, file_def in enumerate(run_data_list):
 
-        convert_csv_to_hdf5(DIR_RAW, DIR_SPLIT, file_def, limit_rows=limit_rows)
+        input_directory = DIR_RAW
+        output_directory = DIR_SPLIT
+        split_csvs(input_directory, output_directory, file_def, limit_rows=limit_rows)
+        csv_split_to_hdf5_split(output_directory, output_directory, file_def)
+
+        #convert_csv_to_hdf5(DIR_RAW, DIR_SPLIT, file_def, limit_rows=limit_rows)
         bobj = BaseObjCommon(file_def)
         bobj.create_clean_text_split()
 
@@ -308,4 +314,4 @@ def run_pipeline(
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    run_pipeline(limit_rows=1000)  # set limit rows to 0 to run all data
+    run_pipeline(limit_rows=2000)  # set limit rows to 0 to run all data

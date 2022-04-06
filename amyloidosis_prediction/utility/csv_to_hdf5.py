@@ -8,15 +8,11 @@ import logging
 import glob
 import os
 import re
-import time
-import traceback
 
 from simpleh5 import H5ColStore
 
 # the text fields may be raeher large so need to increase field limit size
 from amyloidosis_prediction.data_objects.file_config import NAME, ENCODING, QUOTECHAR, DELIM, ID_COL, COL_DEF, EXPECTED_ROWS
-from amyloidosis_prediction.utility.timing import log_time
-from amyloidosis_prediction.data_objects.base_obj_common import BaseObjCommon
 
 csv.field_size_limit(2147483647)
 
@@ -111,63 +107,6 @@ def iterate_csv_rows(in_directory: str, file_definition: dict, limit_rows=10000,
                 # raise
                 num_errors += 1
                 logging.error(f'error #{num_errors} occurred on line {cnt}')
-
-
-
-def csv_split_to_hdf5_split(in_directory: str, out_directory: str, file_definition: dict):
-    '''
-    Perform conversion of original csv format to hdf5
-
-    :param in_directory:
-    :param out_directory:
-    :param file_definition:
-    :return:
-    '''
-
-    # loop through all different file types
-    outfile = os.path.join(out_directory, f'{file_definition[NAME]}_split.h5')
-    if os.path.exists(outfile):
-        raise Exception(f'Existing: File exists: {outfile}')
-
-    bobj = BaseObjCommon(file_definition)
-    h5file = H5ColStore(outfile)
-    table_name = file_definition[NAME]
-    col_def = file_definition[COL_DEF]
-
-    logging.info(f'Writing files to directory: {out_directory}')
-    logging.info(f'Checking file_definition: {file_definition}')
-
-    split_dir = os.path.join(in_directory, f'{file_definition[NAME]}_split_csv')
-    all_files = glob.glob(os.path.join(split_dir, '*.csv'))
-    sttime = time.time()
-    pat_ids = []
-    for cnt, fpath in enumerate(all_files):
-        max_lens = [0 for _ in col_def]
-        col_data = {k: [] for k in col_def}
-        for row in read_all_csv_lines(fpath):
-            for j, col in enumerate(col_def):
-                val = row[j]
-                if col == file_definition[ID_COL]:
-                    pat_ids.append(val)
-                lval = len(val)
-                if lval > max_lens[j]:
-                    max_lens[j] = lval
-                col_data[col].append(val)
-
-        group = os.path.basename(fpath).replace('.csv', '')
-        h5splitdir = bobj._path_splitdir
-        if not os.path.exists(h5splitdir):
-            os.mkdir(h5splitdir)
-        h5file = os.path.join(bobj._path_splitdir, f'{group}.h5')
-        h5 = H5ColStore(h5file)
-        h5.append_ctable(group, col_data, col_dtypes=file_definition[COL_DEF])
-
-        #new_dtypes = {k: f's{max(1, int(1.1*max_lens[j]))}' for j, k in enumerate(col_def)}
-        #h5file.create_ctable(group, new_dtypes, expectedrows=file_definition[EXPECTED_ROWS])
-        #h5file.append_ctable(group, col_data=col_data)
-        log_time(cnt, sttime, len(all_files), pre=f'{table_name} {group}')
-
-    return pat_ids
 
 
 def csv_to_hdf5(in_directory: str, out_directory: str, file_definition: dict, limit_rows=5000, buffer_len=5000):
