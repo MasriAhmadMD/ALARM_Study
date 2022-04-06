@@ -60,7 +60,7 @@ def get_model_dir(odds_ratio, num_topics, name: str=''):
 
 class BaseObjCommon(object):
 
-    def __init__(self, file_def: dict, name: str='', num_topics: int=200, odds_ratio: Union[int, float]=50,
+    def __init__(self, file_def: dict, name: str='', num_topics: int=0, odds_ratio: Union[int, float]=0,
                  restrict_patients: set=None, amyloid_pats: set=None, **kwargs):
 
         dir_split = DIR_SPLIT
@@ -95,13 +95,15 @@ class BaseObjCommon(object):
         self._path_splitdir = os.path.join(dir_split, f'{self.table_name}_split_h5')
         self._path_cleandir_c = os.path.join(dir_split, f'{self.table_name}_clean_h5')
 
-        self._odds_directory = get_odds_dir(odds_ratio, name=name)
-        if os.path.exists(dir_raw) and not os.path.exists(self._odds_directory):
-            os.mkdir(self._odds_directory)
+        if odds_ratio:
+            self._odds_directory = get_odds_dir(odds_ratio, name=name)
+            if os.path.exists(dir_raw) and not os.path.exists(self._odds_directory):
+                os.mkdir(self._odds_directory)
 
-        self._model_dir = get_model_dir(odds_ratio, num_topics, name=name)
-        if os.path.exists(dir_raw) and not os.path.exists(self._model_dir):
-            os.mkdir(self._model_dir)
+        if num_topics:
+            self._model_dir = get_model_dir(odds_ratio, num_topics, name=name)
+            if os.path.exists(dir_raw) and not os.path.exists(self._model_dir):
+                os.mkdir(self._model_dir)
 
         self._counts_directory = os.path.join(dir_raw, f'word_counts{self._name}')
         if os.path.exists(dir_raw) and not os.path.exists(self._counts_directory):
@@ -133,20 +135,6 @@ class BaseObjCommon(object):
         self.h5lsivecs = H5ColStore(self.lsivecsfile)
         self.ldavecsfile = os.path.join(self._ldavecs_path, f'{self.table_name}_lda_vecs.h5')
         self.h5ldavecs = H5ColStore(self.ldavecsfile)
-
-        '''
-        # Potentially OLD:
-        self._path_split = os.path.join(dir_raw, f'{self.table_name}_split.h5')
-        self.h5split = H5ColStore(self._path_split)
-        self._path_raw = os.path.join(self._file_def.get(LOCATION, dir_raw), f'{self.table_name}.h5')
-        self._path_feat = os.path.join(dir_raw, f'{self.table_name}_feature.h5')
-        self._path_splitnew = os.path.join(dir_split, f'{self.table_name}_split.h5')
-
-        self.h5raw = H5ColStore(self._path_raw)
-        self.h5feat = H5ColStore(self._path_feat)
-        self.h5splitnew = H5ColStore(self._path_splitnew)
-        # potentially old
-        '''
 
         # cache variables
         self._pat_index = None
