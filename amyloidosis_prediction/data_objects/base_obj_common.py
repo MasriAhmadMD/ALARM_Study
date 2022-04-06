@@ -64,6 +64,8 @@ class BaseObjCommon(object):
                  restrict_patients: set=None, amyloid_pats: set=None, **kwargs):
 
         dir_split = DIR_SPLIT
+        self.dir_out = DIR_SPLIT
+        self.dir_raw = DIR_RAW
         dir_raw = DIR_RAW
 
         self._name = name

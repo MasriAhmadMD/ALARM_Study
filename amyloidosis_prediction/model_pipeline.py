@@ -20,7 +20,7 @@ from amyloidosis_prediction.utility.csv_split import split_csvs, csv_split_to_hd
 
 from amyloidosis_prediction.models.run_models import train_check_models
 from amyloidosis_prediction.patients.characterize_patient_dates import characterize_and_return_dates
-from amyloidosis_prediction.patients.identify_patients import patients_clinical_note_dates, group_hf_neuro_amy_patients
+from amyloidosis_prediction.patients.identify_patients import patients_clinical_note_dates, group_hf_neuro_amy_patients, ICD_9, ICD_10
 
 
 def get_vec_data(table_data: dict, valid_patients: set, odds_ratio: int, num_topics: int,
@@ -184,23 +184,6 @@ def train_models(run_list, odds_ratio, num_topics, name: str='', restrict_patien
 
         false_positive_overlap(run_name, odds_ratio, num_topics, name=name)
 
-'''
-def convert_csv_to_hdf5(input_directory, output_directory, file_definition, limit_rows=0):
-
-    # helper function for standard conversion
-    logging.info(f"Working on data: {file_definition[NAME]}")
-    h5file = os.path.join(output_directory, file_definition[NAME] + '.h5')
-    if not os.path.exists(h5file):
-        # convert
-        csv_to_hdf5(input_directory, output_directory, file_definition, limit_rows=limit_rows)
-        h5 = H5ColStore(h5file)
-        logging.info("H5 File created...")
-        print(h5)
-        #h5.repack()
-    else:
-        logging.warning(f'H5 file exists, NOT rewriting ... {h5file}')
-'''
-
 
 def preprocess_data(run_data_list, limit_rows=0):
     """
@@ -218,7 +201,6 @@ def preprocess_data(run_data_list, limit_rows=0):
         split_csvs(input_directory, output_directory, file_def, limit_rows=limit_rows)
         csv_split_to_hdf5_split(output_directory, output_directory, file_def)
 
-        #convert_csv_to_hdf5(DIR_RAW, DIR_SPLIT, file_def, limit_rows=limit_rows)
         bobj = BaseObjCommon(file_def)
         bobj.create_clean_text_split()
 
@@ -247,12 +229,28 @@ def run_pipeline(
     date_restricted_patients = characterize_and_return_dates(print_stats=False)
 
     # generate groups of amyloidosis patients based on icd9 and icd10 codes
-    group_hf_neuro_amy_patients()
+    groups = {
+        'heartfailure': {
+            ICD_10: ['I0981', 'I50'],
+            ICD_9: ['39891', '40201', '40211', '40291', '40401', '40403', '40411', '40413',
+                    '40491', '40493', '425', '428'],
+        },
+        'neuropathy': {
+            ICD_10: ['G54', 'G55', 'G56', 'G57', 'G58', 'G59', 'G60', 'G61', 'G62', 'G63', 'G64', 'G90', 'G990'],
+            ICD_9: ['337', '353', '354', '355', '356', '357'],
+        },
+        'amyloidosis': {
+            ICD_10: ['E85'],
+            ICD_9: ['2773'],
+        },
+    }
+    bobj = BaseObjCommon(DIAGNOSES_DEF)
+    group_hf_neuro_amy_patients(bobj, groups)
 
     # get sets of patients determiented by icd codes
-    all_amy_patients = set(open('./patients/amyloidosis_patients_icd9_icd10.txt').read().strip().split('\n'))
-    hf_patients = set(open('./patients/heartfailure_patients_icd9_icd10.txt').read().strip().split('\n'))
-    neuro_patients = set(open('./patients/neuropathy_patients_icd9_icd10.txt').read().strip().split('\n'))
+    all_amy_patients = set(open(os.path.join(bobj.dir_out, 'amyloidosis_patients_icd9_icd10.txt')).read().strip().split('\n'))
+    hf_patients = set(open(os.path.join(bobj.dir_out, 'heartfailure_patients_icd9_icd10.txt')).read().strip().split('\n'))
+    neuro_patients = set(open(os.path.join(bobj.dir_out, 'neuropathy_patients_icd9_icd10.txt')).read().strip().split('\n'))
     hfneuro_patients = hf_patients.union(neuro_patients)
 
     patient_subgroup = {
@@ -315,4 +313,4 @@ def run_pipeline(
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    run_pipeline(limit_rows=2000)  # set limit rows to 0 to run all data
+    run_pipeline(limit_rows=20000)  # set limit rows to 0 to run all data

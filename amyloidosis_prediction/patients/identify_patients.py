@@ -3,10 +3,11 @@ import logging
 import os
 import re
 
-
 from amyloidosis_prediction.data_objects.base_obj_common import BaseObjCommon, get_model_dir
 from amyloidosis_prediction.data_objects.file_config import DIAGNOSES_DEF, DEMOGRAPHICS_DEF, CLINICAL_NOTES_DEF, DIR_SPLIT
 
+ICD_10 = 'ICD10_CODE'
+ICD_9 = 'ICD9_CODE'
 
 
 def patients_clinical_note_dates():
@@ -40,27 +41,7 @@ def patients_clinical_note_dates():
 
 
 
-def group_hf_neuro_amy_patients():
-
-    ICD_10 = 'ICD10_CODE'
-    ICD_9 = 'ICD9_CODE'
-    bobj = BaseObjCommon(DIAGNOSES_DEF)
-
-    groups = {
-        'heartfailure': {
-            ICD_10: ['I0981', 'I50'],
-            ICD_9: ['39891', '40201', '40211', '40291', '40401', '40403', '40411', '40413',
-                    '40491', '40493', '425', '428'],
-        },
-        'neuropathy': {
-            ICD_10: ['G54', 'G55', 'G56', 'G57', 'G58', 'G59', 'G60', 'G61', 'G62', 'G63', 'G64', 'G90', 'G990'],
-            ICD_9: ['337', '353', '354', '355', '356', '357'],
-        },
-        'amyloidosis': {
-            ICD_10: ['E85'],
-            ICD_9: ['2773'],
-        },
-    }
+def group_hf_neuro_amy_patients(bobj: BaseObjCommon, groups: dict):
 
     cols = [
         bobj.id_col,
@@ -88,8 +69,7 @@ def group_hf_neuro_amy_patients():
     for group in patients:
         if not patients[group]:
             raise Exception(f'No patients were identified with ICD9 or ICD10 codes for: {group} ... this will cause issues later, so killing')
-        #outfile = f'../patients/{group}_patients_icd9_icd10.txt'
-        outfile = f'{group}_patients_icd9_icd10.txt'
+        outfile = os.path.join(bobj.dir_out, f'{group}_patients_icd9_icd10.txt')
         with open(outfile, 'w') as f:
             for pat in patients[group]:
                 f.write(f'{pat}\n')
