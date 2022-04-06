@@ -95,15 +95,21 @@ class BaseObjCommon(object):
         self._path_splitdir = os.path.join(dir_split, f'{self.table_name}_split_h5')
         self._path_cleandir_c = os.path.join(dir_split, f'{self.table_name}_clean_h5')
 
+        self._odds_directory = ''
+        self._token_dict = ''
+        self._model_dir = ''
+        self._lsivecs_path = ''
         if odds_ratio:
             self._odds_directory = get_odds_dir(odds_ratio, name=name)
             if os.path.exists(dir_raw) and not os.path.exists(self._odds_directory):
                 os.mkdir(self._odds_directory)
+            self._token_dict = os.path.join(self._odds_directory, f'{self.table_name}_token_dict{self._name}.txt')
 
         if num_topics:
             self._model_dir = get_model_dir(odds_ratio, num_topics, name=name)
             if os.path.exists(dir_raw) and not os.path.exists(self._model_dir):
                 os.mkdir(self._model_dir)
+            self._lsivecs_path = os.path.join(self._model_dir, f'lsi_vecs')
 
         self._counts_directory = os.path.join(dir_raw, f'word_counts{self._name}')
         if os.path.exists(dir_raw) and not os.path.exists(self._counts_directory):
@@ -113,16 +119,15 @@ class BaseObjCommon(object):
         if os.path.exists(dir_raw) and not os.path.exists(self._path_cnts):
             os.mkdir(self._path_cnts)
 
-        self._token_dict = os.path.join(self._odds_directory, f'{self.table_name}_token_dict{self._name}.txt')
 
         self._bow_path = os.path.join(self._odds_directory, BOW)
         if os.path.exists(dir_raw) and not os.path.exists(self._bow_path):
             os.mkdir(self._bow_path)
 
         self._lsi_vecs = None
-        self._lsivecs_path = os.path.join(self._model_dir, f'lsi_vecs')
-        if os.path.exists(dir_raw) and not os.path.exists(self._lsivecs_path):
-            os.mkdir(self._lsivecs_path)
+        if self._lsivecs_path:
+            if os.path.exists(dir_raw) and not os.path.exists(self._lsivecs_path):
+                os.mkdir(self._lsivecs_path)
 
         self._lda_vecs = None
         self._ldavecs_path = os.path.join(self._model_dir, f'lda_vecs')
