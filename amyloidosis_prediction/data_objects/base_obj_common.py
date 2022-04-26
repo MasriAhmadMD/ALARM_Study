@@ -129,17 +129,10 @@ class BaseObjCommon(object):
             if os.path.exists(dir_raw) and not os.path.exists(self._lsivecs_path):
                 os.mkdir(self._lsivecs_path)
 
-        self._lda_vecs = None
-        self._ldavecs_path = os.path.join(self._model_dir, f'lda_vecs')
-        if os.path.exists(dir_raw) and not os.path.exists(self._ldavecs_path):
-            os.mkdir(self._ldavecs_path)
-
         self.bowfile = os.path.join(self._bow_path, f'{self.table_name}_bow.h5')
         self.h5bow = H5ColStore(self.bowfile)
         self.lsivecsfile = os.path.join(self._lsivecs_path, f'{self.table_name}_lsi_vecs.h5')
         self.h5lsivecs = H5ColStore(self.lsivecsfile)
-        self.ldavecsfile = os.path.join(self._ldavecs_path, f'{self.table_name}_lda_vecs.h5')
-        self.h5ldavecs = H5ColStore(self.ldavecsfile)
 
         # cache variables
         self._pat_index = None
@@ -148,7 +141,6 @@ class BaseObjCommon(object):
         self._num_raw_rows = None
 
         self._lsi_vecs = 'lsi_vecs'
-        self._lda_vecs = 'lda_vecs'
         self._num_topics = num_topics
         self._odds_ratio = odds_ratio
         self._dictionary_cache = None
@@ -812,14 +804,8 @@ class BaseObjCommon(object):
 
         lda_nlp_vecs = {}
         isboth = False
-        if vec_type == 'lsilda':
+        if vec_type == 'lsi':
             nlp_vecs = self._get_key_value(VECS, self.h5lsivecs)
-            lda_nlp_vecs = self._get_key_value(VECS, self.h5ldavecs)
-            isboth = True
-        elif vec_type == 'lsi':
-            nlp_vecs = self._get_key_value(VECS, self.h5lsivecs)
-        elif vec_type == 'lda':
-            nlp_vecs = self._get_key_value(VECS, self.h5ldavecs)
         else:
             raise Exception(f'Need correct vec_type: {vec_type}')
 
@@ -840,21 +826,11 @@ class BaseObjCommon(object):
             if vecs and len(vecs) != self._num_topics:
                 sub_num_topics += 1
 
-            lda_vecs = {}
-            if isboth:
-                lda_vecs = lda_nlp_vecs.get(pat_id, None)
-                if not lda_vecs:
-                    no_vecs.append(pat_id)
-                    continue
 
             weight_dict = dict(vecs)
-            lda_w_dict = dict(lda_vecs)
             for topic in range(self._num_topics):
 
                 row.append(float(weight_dict.get(topic, 0)))
-                if isboth:
-                    row.append(float(lda_w_dict.get(topic, 0)))
-
                 if j == 0:
                     # initialize columns
                     if isboth:
@@ -877,49 +853,6 @@ class BaseObjCommon(object):
         logging.info(f'Loaded columng vecs {self.table_name}: num columns={col_num} num patients{len(data["patients"])}')
 
         return data
-
-    def create_lda_vecs(self):
-
-        logging.info(f'Starting training LDA for {self.table_name}')
-        sttime = time.time()
-        gensim_model = gensim.models.LdaModel
-        dictionary = self.read_dictionary()
-
-        corpus = [tfidf for pat_id, tfidf in self.iter_tfidf(training_only=True)]
-        model = gensim_model(corpus, id2word=dictionary,
-                             num_topics=self._num_topics,
-                             passes=40,
-                             random_state=1,  # for reproducibility
-                             alpha='symmetric',
-                             #eta='auto',
-                             chunksize=10000,
-                             iterations=100,
-                             decay=0.5,  # a little higher forget rate
-                             offset=16,  # 256 seemed high from paper
-                             dtype=np.float64,
-                             )
-
-        print("MODEL INFORMATION...")
-        print(model)
-
-        logging.info(f'Saving model...')
-        model_name = f'{self.table_name}_LDA'
-        model.save(os.path.join(self._ldavecs_path, f'{model_name}.model'))
-        try:
-            # write out a topics file to review
-            model.print_topics(num_topics=20, num_words=20)
-
-            with open(os.path.join(self._ldavecs_path, f'{model_name}_topics.txt'), 'w', newline='') as f:
-                for top_id, vals in model.print_topics(num_topics=-1, num_words=100):
-                    f.write(f'{top_id}\t{vals}\n')
-        except:
-            logging.error(f'Model could not print_topics')
-
-        logging.info(f'Training time for LDA for {self.table_name}: {time.time()-sttime:0.2f} seconds')
-        logging.info(f'Generating LDA vectors for entire data set...')
-        # generate model vectors for entire data set including test
-        data = {pat_id: model[tfidf] for (pat_id, tfidf) in self.iter_tfidf(training_only=False)}
-        self._store_key_value(VECS, data, self.h5ldavecs)
 
     def create_lsi_vecs(self):
 
