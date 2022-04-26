@@ -241,8 +241,10 @@ class BaseObjCommon(object):
         if self._amyloid_pats:
             return self._amyloid_pats
 
-        self._amyloid_pats = set(open(os.path.join(self.dir_out, 'amyloidosis_patients_icd9_icd10.txt')).read().strip().split('\n'))
-        return self._amyloid_pats
+        amyloid_pats = set(open(os.path.join(self.dir_out, 'amyloidosis_patients_icd9_icd10.txt')).read().strip().split('\n'))
+        if self._restrict_patients:
+            amyloid_pats.intersection_update(set(self._restrict_patients))
+        return amyloid_pats
 
     def _all_split_files(self):
         return glob.glob(os.path.join(self._path_splitdir, f'*.h5'))
