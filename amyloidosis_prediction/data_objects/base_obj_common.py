@@ -240,13 +240,9 @@ class BaseObjCommon(object):
     def get_amyloid_pat_ids(self) -> set:
         if self._amyloid_pats:
             return self._amyloid_pats
-        data = self.read_e85_file_flags()
-        amyloid_pats = set()
-        for pat_id in set(data[self.id_col]):
-            if self._restrict_patients and pat_id not in self._restrict_patients:
-                continue
-            amyloid_pats.add(pat_id)
-        return amyloid_pats
+
+        self._amyloid_pats = set(open(os.path.join(self.dir_out, 'amyloidosis_patients_icd9_icd10.txt')).read().strip().split('\n'))
+        return self._amyloid_pats
 
     def _all_split_files(self):
         return glob.glob(os.path.join(self._path_splitdir, f'*.h5'))

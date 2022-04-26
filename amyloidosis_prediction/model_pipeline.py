@@ -210,6 +210,7 @@ def run_pipeline(
         num_lsi_topics=(100,),
         check_odds_ratios=(3.5,),
         limit_rows: int=0,
+        generate_data: bool=True,
 ):
     """
     Run the full pipeline against a set of different clinical datasets across parameters.
@@ -284,33 +285,35 @@ def run_pipeline(
 
             for num_topics in num_lsi_topics:  # could add additional topics here
                 for odds_ratio in check_odds_ratios:  # can add additional
-                    for j, file_def in enumerate(run_data_list):
 
+                    if generate_data:  # utility flag to skip generation of data if already generated
+                        for j, file_def in enumerate(run_data_list):
 
-                        bobj = BaseObjCommon(file_def, num_topics=num_topics, odds_ratio=odds_ratio,
-                                             name=subgroupname, restrict_patients=restrict_patients,
-                                             amyloid_pats=amy_patients)
+                            bobj = BaseObjCommon(file_def, num_topics=num_topics, odds_ratio=odds_ratio,
+                                                 name=subgroupname, restrict_patients=restrict_patients,
+                                                 amyloid_pats=amy_patients)
 
-                        amy_exclude_frac = 0.85  # exclude common target words
-                        other_exclude_frac = 0.6 # exclude common other words
-                        if not bobj.token_counts_exist():
-                            bobj.create_token_counts()
-                        if not bobj.dictionary_exists():
-                            bobj.create_token_dictionary(amy_exclude_frac=amy_exclude_frac,
-                                                         other_exclude_frac=other_exclude_frac,
-                                                         min_amy_cnt=10,
-                                                         min_other_cnt=50,
-                                                         top_n_amy=10000,
-                                                         total_words=50000,
-                                                         )
-                        if not bobj.bow_exists():
-                            bobj.create_bow()
-                        if not bobj.lsivecs_exist():
-                            bobj.create_lsi_vecs()
+                            amy_exclude_frac = 0.85  # exclude common target words
+                            other_exclude_frac = 0.6 # exclude common other words
+                            if not bobj.token_counts_exist():
+                                bobj.create_token_counts()
+                            if not bobj.dictionary_exists():
+                                bobj.create_token_dictionary(amy_exclude_frac=amy_exclude_frac,
+                                                             other_exclude_frac=other_exclude_frac,
+                                                             min_amy_cnt=10,
+                                                             min_other_cnt=50,
+                                                             top_n_amy=10000,
+                                                             total_words=50000,
+                                                             )
+                            if not bobj.bow_exists():
+                                bobj.create_bow()
+                            if not bobj.lsivecs_exist():
+                                bobj.create_lsi_vecs()
 
                     train_models(run_data_list, odds_ratio, num_topics, name=subgroupname, restrict_patients=restrict_patients)
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    run_pipeline(limit_rows=20000)  # set limit rows to 0 to run all data
+    generate_lsi_vec_data = False
+    run_pipeline(limit_rows=20000, generate_data=generate_lsi_vec_data)  # set limit rows to 0 to run all data
