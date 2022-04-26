@@ -220,9 +220,6 @@ class BaseObjCommon(object):
     def lsivecs_exist(self):
         return os.path.exists(self.lsivecsfile)
 
-    def ldavecs_exist(self):
-        return os.path.exists(self.ldavecsfile)
-
     def read_dictionary(self):
         # return the dictionary saved by gensim
         if not self._dictionary_cache:
@@ -252,8 +249,7 @@ class BaseObjCommon(object):
     def _store_key_value(self, key: str, value: Any, h5file=None):
         # simple key value store for easier access to complex stored variables
 
-        if h5file is None:
-            h5file = self.h5feat
+        assert h5file is not None
 
         assert value is not None
         if not os.path.exists(h5file._h5file) or not h5file.table_info(key):
@@ -270,8 +266,7 @@ class BaseObjCommon(object):
 
     def _get_key_value(self, key: str, h5file=None):
 
-        if h5file is None:
-            h5file = self.h5feat
+        assert h5file is not None
 
         # simple key value store access for easier access to complex stored variables
         if not os.path.exists(h5file._h5file) or not h5file.table_info(key):
@@ -283,8 +278,9 @@ class BaseObjCommon(object):
         return value
 
     def _delete_key_value(self, key: str, h5file=None):
-        if h5file is None:
-            h5file = self.h5feat
+
+        assert h5file is not None
+
         if not os.path.exists(h5file._h5file) or not h5file.table_info(key):
             return None
         h5file.delete_ctable(key, raise_exception=False)
@@ -696,31 +692,6 @@ class BaseObjCommon(object):
         self.h5bow.delete_ctable(self.table_name)
         self.h5bow.append_ctable(self.table_name, col_data=bow_col_data, col_dtypes=col_dtypes)
 
-    def lsi_vecs_data(self):
-
-        lsi_vecs = self._get_key_value(self._lsi_vecs, h5file=self.h5vecs)
-
-        data = {self.id_col: []}
-        for pat_id, vecs in lsi_vecs.items():
-            data[self.id_col].append(pat_id)
-
-            if not vecs:
-                # todo: figure out why some vectors do not exist
-                for topic in range(self._num_topics):
-                    data[f'{self.name}_topic_{topic}'].append(0.0)
-
-                # raise Exception(f'Patient {pat_id} without lsi vecs: {vecs}')
-            else:
-                for topic, weight in vecs:
-                    topicname = f'{self.name}_topic_{topic}'
-                    if topicname not in data:
-                        data[topicname] = []
-                    data[topicname].append(float(weight))
-
-        logging.info(f'Loaded Lsi vecs: {len(data[self.id_col])} and {len(data[topicname])}')
-
-        return data
-
     def get_demographics_vecotors(self):
 
         logging.info("Reading demographics dataframes...")
@@ -826,7 +797,6 @@ class BaseObjCommon(object):
             if vecs and len(vecs) != self._num_topics:
                 sub_num_topics += 1
 
-
             weight_dict = dict(vecs)
             for topic in range(self._num_topics):
 
@@ -849,7 +819,7 @@ class BaseObjCommon(object):
             data['patients'][pat_id] = row
 
         logging.info(f"No vecs number={len(no_vecs)}")
-        logging.info(f'Sub {self._num_topics} number={sub_num_topics}')
+        logging.info(f'Sub {self._num_topics} number={sub_num_topics}, number=0 is good')
         logging.info(f'Loaded columng vecs {self.table_name}: num columns={col_num} num patients{len(data["patients"])}')
 
         return data
@@ -905,42 +875,6 @@ class BaseObjCommon(object):
         for table_name in table_names:
             yield table_name
 
-    def iter_raw_rows(self, block_size=4000) -> dict:
-        """
-        Iterate through every row of data returning a dictionary of column names to data for each row.
-
-        :param block_size: determines how many rows to read simultaneously (block reads are faster but increase memory)
-        :return:
-        """
-
-        nrows = self.h5raw.table_nrows(self.table_name)
-        for i in range(0, nrows, block_size):
-            lastrow = min(i+block_size, nrows-1)
-            data = self.h5raw.read_ctable(self.table_name, inds=list(range(i, lastrow)))
-            for i, pat_id in enumerate(data[self.id_col]):
-                yield {k: data[k][i] for k in data}
-
-    def pat_id_data(self, pat_id: str, log_on: bool=False, cols=None) -> dict:
-        """Read all information for a single patient id"""
-
-        group = self.pat_group_string(pat_id)
-
-        query = (self.id_col, '==', pat_id)
-        sttime = time.time()
-        data = self._read_table_h5splitnew(group, cols=cols, query=query, log_on=log_on)
-        if log_on:
-            logging.info(f'Time to read {self.table_name} for pat_id={pat_id} {time.time()-sttime:0.3f} seconds')
-
-        return data
-
-    def _read_table_h5splitnew(self, table_name: str, cols=None, query=(), log_on: bool=False) -> dict:
-
-        if self._single_file:
-            return self._read_table(self.h5splitnew, table_name, cols=cols, query=query, log_on=log_on)
-        else:
-            h5file = H5ColStore(os.path.join(self._path_splitdir, f'{table_name}.h5'))
-            return self._read_table(h5file, table_name, cols=cols, query=query, log_on=log_on)
-
     def _read_table(self, h5file: H5ColStore, table_name: str, cols=None, query=(), log_on: bool=False) -> dict:
         # iterate through all patient notes in a single table created as a split table
         try:
@@ -955,32 +889,6 @@ class BaseObjCommon(object):
                 raise
 
         return data
-
-    def _create_index(self, force=False):
-        """
-        Perform patient indexing
-        :return:
-        """
-
-        if not force and self.h5feat.table_info(PAT_INDEX):
-            logging.info(f'Index {self.table_name}:{PAT_INDEX} exists, not creating')
-            return
-
-        logging.info(f'Create index {self.table_name}:{PAT_INDEX} ...')
-        pat_ids = []
-        pat_index = {}
-        sttime = time.time()
-        for i, pat_id in enumerate(self.h5raw.read_ctable(self.table_name, cols=[self.id_col])[self.id_col]):
-            if pat_id not in pat_index:
-                pat_index[pat_id] = []
-                pat_ids.append(pat_id)
-            pat_index[pat_id].append(i)
-
-        pat_lookup = dict(zip(list(pat_ids), range(len(pat_ids))))
-        self._store_key_value(PAT_INDEX, pat_index)
-        self._store_key_value(PAT_LOOKUP, pat_lookup)
-        self._store_key_value(NUM_PATIENTS, len(pat_lookup))
-        logging.info(f'Create index {self.table_name}:{PAT_INDEX} time: {time.time()-sttime:0.4f} seconds')
 
     def num_patients(self):
         if not self._num_patients:
