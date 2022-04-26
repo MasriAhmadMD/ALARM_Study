@@ -222,11 +222,12 @@ def run_pipeline(
     :return:
     """
 
-    # perform preprocessing on csv data to convert and split into HDF5 files
-    preprocess_data(run_data_list, limit_rows=limit_rows)
+    if generate_data:
+        # perform preprocessing on csv data to convert and split into HDF5 files
+        preprocess_data(run_data_list, limit_rows=limit_rows)
+        # determine dates of clinical notes to restrict/clean up based on date and counts of clinical notes
+        patients_clinical_note_dates()
 
-    # determine dates of clinical notes to restrict/clean up based on date and counts of clinical notes
-    patients_clinical_note_dates()
     date_restricted_patients = characterize_and_return_dates(print_stats=False)
 
     # generate groups of amyloidosis patients based on icd9 and icd10 codes
@@ -261,32 +262,32 @@ def run_pipeline(
         'neuro2': neuro_patients,  # only neurology patients
     }
 
-    for dorestrict in ['restrict2', '']:  # two scenarios, restrict patients by precomputed date restrictions or not
-        for subgroup, orig_restrict_patients in patient_subgroup.items():
+    if generate_data:
+        for dorestrict in ['restrict2', '']:  # two scenarios, restrict patients by precomputed date restrictions or not
+            for subgroup, orig_restrict_patients in patient_subgroup.items():
 
-            if dorestrict:
-                subgroupname = f'{dorestrict}_{subgroup}'
-                if orig_restrict_patients:
-                    restrict_patients = orig_restrict_patients.intersection(date_restricted_patients)
+                if dorestrict:
+                    subgroupname = f'{dorestrict}_{subgroup}'
+                    if orig_restrict_patients:
+                        restrict_patients = orig_restrict_patients.intersection(date_restricted_patients)
+                    else:
+                        restrict_patients = date_restricted_patients
+                    amy_patients = all_amy_patients.intersection(date_restricted_patients)
                 else:
-                    restrict_patients = date_restricted_patients
-                amy_patients = all_amy_patients.intersection(date_restricted_patients)
-            else:
-                subgroupname = f'{subgroup}'
-                restrict_patients = orig_restrict_patients
-                amy_patients = all_amy_patients
+                    subgroupname = f'{subgroup}'
+                    restrict_patients = orig_restrict_patients
+                    amy_patients = all_amy_patients
 
-            # debug logging
-            logging.info(f'## Restrict patients: ({dorestrict})')
-            if restrict_patients:
-                logging.info(f'  Restrict len: {len(restrict_patients)} ')
-            else:
-                logging.info(f'  Restrict len: {restrict_patients} ')
+                # debug logging
+                logging.info(f'## Restrict patients: ({dorestrict})')
+                if restrict_patients:
+                    logging.info(f'  Restrict len: {len(restrict_patients)} ')
+                else:
+                    logging.info(f'  Restrict len: {restrict_patients} ')
 
-            for num_topics in num_lsi_topics:  # could add additional topics here
-                for odds_ratio in check_odds_ratios:  # can add additional
+                for num_topics in num_lsi_topics:  # could add additional topics here
+                    for odds_ratio in check_odds_ratios:  # can add additional
 
-                    if generate_data:  # utility flag to skip generation of data if already generated
                         for j, file_def in enumerate(run_data_list):
 
                             bobj = BaseObjCommon(file_def, num_topics=num_topics, odds_ratio=odds_ratio,
@@ -310,10 +311,50 @@ def run_pipeline(
                             if not bobj.lsivecs_exist():
                                 bobj.create_lsi_vecs()
 
+    # perform model training here
+    run_model_training(run_data_list, num_lsi_topics, check_odds_ratios, patient_subgroup, date_restricted_patients)
+
+
+def run_model_training(run_data_list, num_lsi_topics, check_odds_ratios, patient_subgroup, date_restricted_patients):
+    """
+
+    :param run_data_list:
+    :param num_lsi_topics:
+    :param check_odds_ratios:
+    :return:
+    """
+
+    bobj = BaseObjCommon(DIAGNOSES_DEF)
+    all_amy_patients = set(open(os.path.join(bobj.dir_out, 'amyloidosis_patients_icd9_icd10.txt')).read().strip().split('\n'))
+
+    for dorestrict in ['restrict2', '']:  # two scenarios, restrict patients by precomputed date restrictions or not
+        for subgroup, orig_restrict_patients in patient_subgroup.items():
+
+            if dorestrict:
+                subgroupname = f'{dorestrict}_{subgroup}'
+                if orig_restrict_patients:
+                    restrict_patients = orig_restrict_patients.intersection(date_restricted_patients)
+                else:
+                    restrict_patients = date_restricted_patients
+                amy_patients = all_amy_patients.intersection(date_restricted_patients)
+            else:
+                subgroupname = f'{subgroup}'
+                restrict_patients = orig_restrict_patients
+                amy_patients = all_amy_patients
+
+            # debug logging
+            logging.info(f'## Model Train, Restrict patients: ({dorestrict})')
+            if restrict_patients:
+                logging.info(f'  Restrict len: {len(restrict_patients)} ')
+            else:
+                logging.info(f'  Restrict len: {restrict_patients} ')
+
+            for num_topics in num_lsi_topics:  # could add additional topics here
+                for odds_ratio in check_odds_ratios:  # can add additional
+
                     train_models(run_data_list, odds_ratio, num_topics, name=subgroupname, restrict_patients=restrict_patients)
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    generate_lsi_vec_data = False
-    run_pipeline(limit_rows=200000, generate_data=generate_lsi_vec_data)  # set limit rows to 0 to run all data
+    run_pipeline(limit_rows=200000, generate_data=False)  # set limit rows to 0 to run all data
