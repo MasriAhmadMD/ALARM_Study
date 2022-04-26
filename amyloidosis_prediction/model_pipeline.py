@@ -316,4 +316,4 @@ def run_pipeline(
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     generate_lsi_vec_data = False
-    run_pipeline(limit_rows=20000, generate_data=generate_lsi_vec_data)  # set limit rows to 0 to run all data
+    run_pipeline(limit_rows=200000, generate_data=generate_lsi_vec_data)  # set limit rows to 0 to run all data
