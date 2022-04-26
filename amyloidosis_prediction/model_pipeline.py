@@ -357,4 +357,4 @@ def run_model_training(run_data_list, num_lsi_topics, check_odds_ratios, patient
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    run_pipeline(limit_rows=200000, generate_data=True)  # set limit rows to 0 to run all data
+    run_pipeline(limit_rows=400000, generate_data=True)  # set limit rows to 0 to run all data
