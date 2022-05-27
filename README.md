@@ -48,14 +48,25 @@ If modifications need to be made to the file_config.py to alter data formats and
 
 ## Running 
 
+### Enviornmental variables
+
 Two envrionmental variables must be set
 
 ```python
 AMYLOID_RAW_DIR
 ```
+This path should point to all csv files.    Importantly the CSV file names and columns must be set in the 
+/data_objects/file_config.py for the code to run and work.   For new users the definitions in file_config.py should be overwritten. 
 
 and
 
 ```python
 AMYLOID_SPLIT_DIR
 ```
+This path is actually the output path for all generated files and results.   Data will be fully copied one time (sorted by patient id),
+then will be written again in compressed hdf5 files.   This directory should have enough space to handle these extra copies.
+
+### Running code
+
+To run models on the data the ```model_pipeline.py``` file should be used.    The default in that file is 
+limit_rows=400000 in order to test.  In order to run on all data the user should set limit_rows=0.
