@@ -17,7 +17,7 @@ These specify the data columns as well as output paths.   Given these are specif
 
 Clone and enter the repository
 ```git
-git clone https://github.com/ssolari/amyloidosis_prediction.git
+git clone https://github.com/MasriAhmadMD/amyloidosis_prediction.git
 ```
 
 ```
